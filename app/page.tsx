@@ -16,11 +16,6 @@ import {
   CheckCircle,
   Star,
   Bell,
-  CreditCard,
-  Gift,
-  BookOpen,
-  Infinity,
-  Mail,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,25 +23,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { CountryPhoneInput } from "@/components/country-phone-input"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useDebounce } from "use-debounce"
 
 // Lazy load components for better performance
 const LazyImage = lazy(() => import("next/image"))
 
-type Step =
-  | "welcome"
-  | "headlines"
-  | "form"
-  | "scanning"
-  | "chat-simulation"
-  | "conversion"
-  | "final"
-  | "checkout"
-  | "upsell1"
-  | "upsell2"
-  | "upsell3"
-  | "thank-you"
+type Step = "welcome" | "headlines" | "form" | "scanning" | "chat-simulation" | "conversion" | "final"
 
 interface WhatsAppProfileResponse {
   success: boolean
@@ -60,15 +42,6 @@ interface Notification {
   id: number
   message: string
   timestamp: Date
-}
-
-interface PurchaseData {
-  mainProduct: boolean
-  orderBump: boolean
-  upsell1: boolean
-  upsell2: boolean
-  upsell3: boolean
-  totalAmount: number
 }
 
 export default function SafeKidAIFunnel() {
@@ -89,18 +62,8 @@ export default function SafeKidAIFunnel() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [protectedFamilies, setProtectedFamilies] = useState(2847)
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [showBumpOffer, setShowBumpOffer] = useState(false)
-  const [orderBumpSelected, setOrderBumpSelected] = useState(false)
   // Tracks the dial-code of the country chosen in the phone input
   const [selectedDialCode, setSelectedDialCode] = useState("+1") // default US
-  const [purchaseData, setPurchaseData] = useState<PurchaseData>({
-    mainProduct: true,
-    orderBump: false,
-    upsell1: false,
-    upsell2: false,
-    upsell3: false,
-    totalAmount: 27,
-  })
   const [scanResults, setScanResults] = useState({
     telegram: { status: "safe", message: "No risks detected" },
     instagram: { status: "warning", message: "Grooming attempt detected" },
@@ -224,30 +187,6 @@ export default function SafeKidAIFunnel() {
     { text: "⚡ Unlock Real-Time Access", icon: AlertTriangle },
   ]
 
-  // FAQ Data
-  const faqData = [
-    {
-      question: "Does this work with any social media platform?",
-      answer:
-        "Yes! Our technology analyzes Instagram, TikTok, WhatsApp, Telegram, Snapchat, Discord and over 15 digital platforms where your child might be interacting.",
-    },
-    {
-      question: "Is my data secure?",
-      answer:
-        "Absolutely. We use bank-level encryption and strictly follow COPPA and privacy regulations. Your data is processed securely and never shared with third parties.",
-    },
-    {
-      question: "Is this a subscription?",
-      answer:
-        "No! It's a one-time payment of $27 that includes the complete report + 30 days of free monitoring. No auto-renewal or hidden fees.",
-    },
-    {
-      question: "What happens after payment?",
-      answer:
-        "You receive immediate access to the complete report via email and text message. Continuous monitoring begins automatically and you receive real-time alerts.",
-    },
-  ]
-
   const [profileLoaded, setProfileLoaded] = useState(false)
 
   // Preload critical images
@@ -291,7 +230,7 @@ export default function SafeKidAIFunnel() {
   // Detect exit attempt
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (currentStep === "conversion" || currentStep === "final" || currentStep === "checkout") {
+      if (currentStep === "conversion" || currentStep === "final") {
         setShowExitPopup(true)
         e.preventDefault()
         e.returnValue = ""
@@ -299,7 +238,7 @@ export default function SafeKidAIFunnel() {
     }
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && (currentStep === "conversion" || currentStep === "final" || currentStep === "checkout")) {
+      if (e.clientY <= 0 && (currentStep === "conversion" || currentStep === "final")) {
         setShowExitPopup(true)
       }
     }
@@ -315,7 +254,7 @@ export default function SafeKidAIFunnel() {
 
   // Timer countdown
   useEffect(() => {
-    if (currentStep === "conversion" || currentStep === "final" || currentStep === "checkout") {
+    if (currentStep === "conversion" || currentStep === "final") {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -331,7 +270,7 @@ export default function SafeKidAIFunnel() {
 
   // Protected families counter
   useEffect(() => {
-    if (currentStep === "final" || currentStep === "checkout") {
+    if (currentStep === "final") {
       const interval = setInterval(() => {
         setProtectedFamilies((prev) => prev + Math.floor(Math.random() * 3))
       }, 8000)
@@ -341,7 +280,7 @@ export default function SafeKidAIFunnel() {
 
   // Real-time notifications
   useEffect(() => {
-    if (currentStep === "final" || currentStep === "checkout") {
+    if (currentStep === "final") {
       const interval = setInterval(() => {
         const newNotification: Notification = {
           id: Date.now(),
@@ -403,16 +342,6 @@ export default function SafeKidAIFunnel() {
       let formattedPhone = phone.replace(/\D/g, "")
       if (countryCode && !formattedPhone.startsWith(countryCode.replace("+", ""))) {
         formattedPhone = countryCode.replace("+", "") + formattedPhone
-      }
-
-      // Validação adicional: mínimo de 10 dígitos
-      if (formattedPhone.length < 10) {
-        console.error("Número inválido: menos de 10 dígitos")
-        setProfileImage("")
-        setIsProfilePrivate(true)
-        setApiError("Número de telefone inválido: deve conter pelo menos 10 dígitos")
-        setProfileLoaded(true)
-        return
       }
 
       console.log("📱 Enviando número para API:", formattedPhone)
@@ -522,49 +451,6 @@ export default function SafeKidAIFunnel() {
     setIsTransitioning(false)
   }
 
-  // Handle order bump selection
-  const handleOrderBumpChange = (checked: boolean) => {
-    setOrderBumpSelected(checked)
-    setPurchaseData((prev) => ({
-      ...prev,
-      orderBump: checked,
-      totalAmount: checked ? 44 : 27, // $27 + $17
-    }))
-  }
-
-  // Handle main checkout
-  const handleMainCheckout = () => {
-    setIsTransitioning(true)
-    setTimeout(() => {
-      setCurrentStep("upsell1")
-      setIsTransitioning(false)
-    }, 2000)
-  }
-
-  // Handle upsell purchases
-  const handleUpsellPurchase = (upsellNumber: 1 | 2 | 3, price: number) => {
-    setPurchaseData((prev) => ({
-      ...prev,
-      [`upsell${upsellNumber}`]: true,
-      totalAmount: prev.totalAmount + price,
-    }))
-
-    setIsTransitioning(true)
-    setTimeout(() => {
-      if (upsellNumber === 1) setCurrentStep("upsell2")
-      else if (upsellNumber === 2) setCurrentStep("upsell3")
-      else setCurrentStep("thank-you")
-      setIsTransitioning(false)
-    }, 1500)
-  }
-
-  // Handle upsell skip
-  const handleUpsellSkip = (upsellNumber: 1 | 2 | 3) => {
-    if (upsellNumber === 1) setCurrentStep("upsell2")
-    else if (upsellNumber === 2) setCurrentStep("upsell3")
-    else setCurrentStep("thank-you")
-  }
-
   // Scanning animation
   useEffect(() => {
     if (currentStep === "scanning") {
@@ -643,6 +529,11 @@ export default function SafeKidAIFunnel() {
       </AnimatePresence>
     </div>
   )
+
+  // Handle checkout redirect
+  const handleCheckoutRedirect = () => {
+    window.open("https://app.monetizze.com.br/checkout/KTX435367", "_blank")
+  }
 
   return (
     <div className="min-h-screen font-sans">
@@ -1646,7 +1537,7 @@ export default function SafeKidAIFunnel() {
                   className="text-center"
                 >
                   <Button
-                    onClick={() => handleStepTransition("checkout")}
+                    onClick={handleCheckoutRedirect}
                     className="bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl shadow-2xl btn-enhanced w-full max-w-md mb-4"
                   >
                     <Lock className="w-6 h-6 mr-2" />
@@ -1658,562 +1549,6 @@ export default function SafeKidAIFunnel() {
                   <p className="text-[#1FE3C2] text-sm font-semibold">
                     ✅ One-time payment • No subscriptions • No hidden fees
                   </p>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Checkout Screen */}
-        {currentStep === "checkout" && (
-          <motion.div
-            key="checkout"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="min-h-screen relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #0B1A30 0%, #1a2332 50%, #0B1A30 100%)",
-            }}
-          >
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: "url('/background/tech-kids.jpeg')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: "blur(2px)",
-              }}
-            />
-
-            <div className="relative z-10 min-h-screen flex flex-col">
-              <div className="flex-1 container mx-auto px-4 py-6 md:py-12 max-w-2xl">
-                {/* Urgency Timer */}
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="text-center mb-6"
-                >
-                  <div className="bg-red-500/20 border-2 border-red-500 rounded-xl p-4 max-w-md mx-auto">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Clock className="w-5 h-5 text-red-400" />
-                      <span className="text-red-400 font-bold">LIMITED ACCESS</span>
-                    </div>
-                    <div className="text-3xl font-bold text-white">{formatTime(timeLeft)}</div>
-                    <p className="text-red-300 text-sm">Time remaining to access report</p>
-                  </div>
-                </motion.div>
-
-                {/* Header */}
-                <motion.div
-                  initial={{ y: -30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-center mb-8"
-                >
-                  <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">🔒 Secure Checkout</h1>
-                  <p className="text-[#1FE3C2] font-semibold">Complete your order to unlock the report</p>
-                </motion.div>
-
-                {/* Order Summary */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-6"
-                >
-                  <h3 className="text-white font-bold text-lg mb-4">Order Summary</h3>
-
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-300">SafeKid AI Complete Report</span>
-                      <span className="text-white font-semibold">$27.00</span>
-                    </div>
-
-                    {orderBumpSelected && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-300">30-Day Continuous Protection</span>
-                        <span className="text-white font-semibold">$17.00</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="border-t border-gray-600 pt-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-white font-bold text-lg">Total</span>
-                      <span className="text-[#1FE3C2] font-bold text-xl">${purchaseData.totalAmount}.00</span>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Order Bump */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="bg-yellow-500/10 border-2 border-yellow-500 rounded-xl p-6 mb-6"
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="order-bump"
-                      checked={orderBumpSelected}
-                      onCheckedChange={handleOrderBumpChange}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <label htmlFor="order-bump" className="cursor-pointer">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Gift className="w-5 h-5 text-yellow-400" />
-                          <span className="text-yellow-400 font-bold">SPECIAL OFFER</span>
-                        </div>
-                        <h4 className="text-white font-bold mb-2">Add 30-Day Continuous Protection for only $17</h4>
-                        <p className="text-gray-300 text-sm mb-3">
-                          Get real-time alerts whenever new risks are detected on your child's social media accounts.
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                            LIMITED TIME
-                          </span>
-                          <span className="text-gray-400 line-through">$47</span>
-                          <span className="text-yellow-400 font-bold">Only $17</span>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Payment Button */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="text-center"
-                >
-                  <Button
-                    onClick={handleMainCheckout}
-                    className="bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl shadow-2xl btn-enhanced w-full mb-4"
-                  >
-                    <CreditCard className="w-6 h-6 mr-2" />
-                    COMPLETE SECURE PAYMENT - ${purchaseData.totalAmount}
-                  </Button>
-                  <p className="text-gray-400 text-sm mb-4">
-                    🔒 256-bit SSL encryption • ✅ 30-day money-back guarantee
-                  </p>
-                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Lock className="w-4 h-4" />
-                      <span>Secure Payment</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Shield className="w-4 h-4" />
-                      <span>Privacy Protected</span>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Upsell 1: Family Protection */}
-        {currentStep === "upsell1" && (
-          <motion.div
-            key="upsell1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="min-h-screen relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #0B1A30 0%, #1a2332 50%, #0B1A30 100%)",
-            }}
-          >
-            <div className="relative z-10 min-h-screen flex flex-col justify-center">
-              <div className="container mx-auto px-4 py-8 max-w-2xl">
-                {/* Header */}
-                <motion.div
-                  initial={{ y: -30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="text-center mb-8"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] rounded-full mb-4">
-                    <Shield className="w-8 h-8 text-white" />
-                  </div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">🛡️ PROTECT YOUR ENTIRE FAMILY</h1>
-                  <p className="text-lg text-[#1FE3C2] font-semibold">
-                    Extend protection to all family members for just $37 more
-                  </p>
-                </motion.div>
-
-                {/* Benefits */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-8"
-                >
-                  <h3 className="text-white font-bold text-lg mb-4">What you get:</h3>
-                  <div className="space-y-3">
-                    {[
-                      "Protection for up to 5 family members",
-                      "Real-time monitoring for all accounts",
-                      "Family dashboard with consolidated reports",
-                      "Priority support and alerts",
-                      "Advanced threat detection",
-                    ].map((benefit, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-[#1FE3C2]" />
-                        <span className="text-gray-300">{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Pricing */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 mb-8 text-center"
-                >
-                  <p className="text-gray-300 mb-2">
-                    Regular price: <span className="line-through">$97</span>
-                  </p>
-                  <p className="text-3xl font-bold text-[#1FE3C2] mb-2">Only $37</p>
-                  <p className="text-green-400 font-semibold">Save $60 today!</p>
-                </motion.div>
-
-                {/* CTA Buttons */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="space-y-4"
-                >
-                  <Button
-                    onClick={() => handleUpsellPurchase(1, 37)}
-                    className="w-full bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl"
-                  >
-                    YES, PROTECT MY ENTIRE FAMILY - $37
-                  </Button>
-                  <Button
-                    onClick={() => handleUpsellSkip(1)}
-                    variant="outline"
-                    className="w-full border-gray-600 text-gray-400 hover:bg-gray-800"
-                  >
-                    No thanks, continue with single protection
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Upsell 2: Anti-Manipulation Guide */}
-        {currentStep === "upsell2" && (
-          <motion.div
-            key="upsell2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="min-h-screen relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #0B1A30 0%, #1a2332 50%, #0B1A30 100%)",
-            }}
-          >
-            <div className="relative z-10 min-h-screen flex flex-col justify-center">
-              <div className="container mx-auto px-4 py-8 max-w-2xl">
-                {/* Header */}
-                <motion.div
-                  initial={{ y: -30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="text-center mb-8"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#FF4B4B] to-[#FF6B6B] rounded-full mb-4">
-                    <BookOpen className="w-8 h-8 text-white" />
-                  </div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                    📚 COMPLETE ANTI-MANIPULATION GUIDE
-                  </h1>
-                  <p className="text-lg text-[#FFCE00] font-semibold">
-                    Learn how to protect your child from online predators - Only $19
-                  </p>
-                </motion.div>
-
-                {/* Benefits */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-8"
-                >
-                  <h3 className="text-white font-bold text-lg mb-4">What you'll learn:</h3>
-                  <div className="space-y-3">
-                    {[
-                      "How to identify grooming patterns",
-                      "Warning signs of online manipulation",
-                      "How to talk to your child about online safety",
-                      "Emergency action protocols",
-                      "Legal steps to take if needed",
-                    ].map((benefit, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-[#1FE3C2]" />
-                        <span className="text-gray-300">{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Pricing */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 mb-8 text-center"
-                >
-                  <p className="text-gray-300 mb-2">
-                    Regular price: <span className="line-through">$47</span>
-                  </p>
-                  <p className="text-3xl font-bold text-[#FFCE00] mb-2">Only $19</p>
-                  <p className="text-yellow-400 font-semibold">Save $28 today!</p>
-                </motion.div>
-
-                {/* CTA Buttons */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="space-y-4"
-                >
-                  <Button
-                    onClick={() => handleUpsellPurchase(2, 19)}
-                    className="w-full bg-gradient-to-r from-[#FF4B4B] to-[#FF6B6B] hover:from-[#FF3B3B] hover:to-[#FF5B5B] text-white font-bold py-4 px-8 text-lg rounded-xl"
-                  >
-                    YES, I WANT THE COMPLETE GUIDE - $19
-                  </Button>
-                  <Button
-                    onClick={() => handleUpsellSkip(2)}
-                    variant="outline"
-                    className="w-full border-gray-600 text-gray-400 hover:bg-gray-800"
-                  >
-                    No thanks, continue without guide
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Upsell 3: Lifetime Monitoring */}
-        {currentStep === "upsell3" && (
-          <motion.div
-            key="upsell3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="min-h-screen relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #0B1A30 0%, #1a2332 50%, #0B1A30 100%)",
-            }}
-          >
-            <div className="relative z-10 min-h-screen flex flex-col justify-center">
-              <div className="container mx-auto px-4 py-8 max-w-2xl">
-                {/* Header */}
-                <motion.div
-                  initial={{ y: -30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="text-center mb-8"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#FFCE00] to-[#FFD700] rounded-full mb-4">
-                    <Infinity className="w-8 h-8 text-black" />
-                  </div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">♾️ LIFETIME MONITORING</h1>
-                  <p className="text-lg text-[#FFCE00] font-semibold">
-                    Never worry again - Lifetime protection for just $67
-                  </p>
-                </motion.div>
-
-                {/* Benefits */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-8"
-                >
-                  <h3 className="text-white font-bold text-lg mb-4">Lifetime benefits:</h3>
-                  <div className="space-y-3">
-                    {[
-                      "Unlimited monitoring forever",
-                      "Real-time alerts for life",
-                      "All future updates included",
-                      "Priority support forever",
-                      "New platform monitoring as they emerge",
-                    ].map((benefit, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-[#1FE3C2]" />
-                        <span className="text-gray-300">{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Pricing */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 mb-8 text-center"
-                >
-                  <p className="text-gray-300 mb-2">
-                    Regular price: <span className="line-through">$297/year</span>
-                  </p>
-                  <p className="text-3xl font-bold text-[#FFCE00] mb-2">Only $67 ONCE</p>
-                  <p className="text-yellow-400 font-semibold">Save over $1,000 in the long run!</p>
-                </motion.div>
-
-                {/* CTA Buttons */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="space-y-4"
-                >
-                  <Button
-                    onClick={() => handleUpsellPurchase(3, 67)}
-                    className="w-full bg-gradient-to-r from-[#FFCE00] to-[#FFD700] hover:from-[#FFBE00] hover:to-[#FFC700] text-black font-bold py-4 px-8 text-lg rounded-xl"
-                  >
-                    YES, I WANT LIFETIME PROTECTION - $67
-                  </Button>
-                  <Button
-                    onClick={() => handleUpsellSkip(3)}
-                    variant="outline"
-                    className="w-full border-gray-600 text-gray-400 hover:bg-gray-800"
-                  >
-                    No thanks, continue to my report
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Thank You Screen */}
-        {currentStep === "thank-you" && (
-          <motion.div
-            key="thank-you"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="min-h-screen relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, #0B1A30 0%, #1a2332 50%, #0B1A30 100%)",
-            }}
-          >
-            <div className="relative z-10 min-h-screen flex flex-col justify-center">
-              <div className="container mx-auto px-4 py-8 max-w-2xl">
-                {/* Success Header */}
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="text-center mb-8"
-                >
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-4">
-                    <CheckCircle className="w-10 h-10 text-white" />
-                  </div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">✅ PURCHASE COMPLETED!</h1>
-                  <p className="text-lg text-[#1FE3C2] font-semibold">Thank you for protecting {childName}</p>
-                </motion.div>
-
-                {/* Purchase Summary */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-8"
-                >
-                  <h3 className="text-white font-bold text-lg mb-4">Purchase Summary</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">SafeKid AI Complete Report</span>
-                      <span className="text-white">$27.00</span>
-                    </div>
-                    {purchaseData.orderBump && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">30-Day Continuous Protection</span>
-                        <span className="text-white">$17.00</span>
-                      </div>
-                    )}
-                    {purchaseData.upsell1 && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Family Protection</span>
-                        <span className="text-white">$37.00</span>
-                      </div>
-                    )}
-                    {purchaseData.upsell2 && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Anti-Manipulation Guide</span>
-                        <span className="text-white">$19.00</span>
-                      </div>
-                    )}
-                    {purchaseData.upsell3 && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-300">Lifetime Monitoring</span>
-                        <span className="text-white">$67.00</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="border-t border-gray-600 pt-3 mt-3">
-                    <div className="flex justify-between">
-                      <span className="text-white font-bold text-lg">Total Paid</span>
-                      <span className="text-[#1FE3C2] font-bold text-xl">${purchaseData.totalAmount}.00</span>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Next Steps */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 mb-8"
-                >
-                  <h3 className="text-green-400 font-bold text-lg mb-4">What happens next:</h3>
-                  <div className="space-y-3">
-                    {[
-                      "Complete report sent to your email within 5 minutes",
-                      "SMS confirmation with access link",
-                      "Monitoring begins immediately",
-                      "You'll receive alerts for any new risks detected",
-                    ].map((step, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-300">{step}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Support Information */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 text-center"
-                >
-                  <h3 className="text-blue-400 font-bold text-lg mb-4">Need Help?</h3>
-                  <p className="text-gray-300 mb-4">
-                    Our support team is available 24/7 to help you understand your report and take action.
-                  </p>
-                  <div className="flex items-center justify-center gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-blue-400" />
-                      <span className="text-gray-300">support@safekidai.com</span>
-                    </div>
-                  </div>
                 </motion.div>
               </div>
             </div>
