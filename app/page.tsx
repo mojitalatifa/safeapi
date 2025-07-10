@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import type React from "react"
 import { useState, useEffect, useRef, useCallback, lazy } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -14,7 +14,6 @@ import {
   Clock,
   MessageCircle,
   CheckCircle,
-  Star,
   Bell,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -70,6 +69,7 @@ export default function SafeKidAIFunnel() {
     snapchat: { status: "danger", message: "Interaction with unknown profile" },
     tiktok: { status: "danger", message: "Inappropriate content viewed" },
     whatsapp: { status: "danger", message: "Suspicious conversation identified" },
+    discord: { status: "danger", message: "Inappropriate server access detected" },
   })
 
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -81,6 +81,7 @@ export default function SafeKidAIFunnel() {
     { name: "WhatsApp", icon: "/social-icons/whatsapp.png", color: "from-green-500 to-green-600" },
     { name: "Telegram", icon: "/social-icons/telegram.png", color: "from-blue-500 to-blue-600" },
     { name: "Snapchat", icon: "/social-icons/snapchat.png", color: "from-yellow-400 to-yellow-500" },
+    { name: "Discord", icon: "/social-icons/discord.png", color: "from-indigo-500 to-purple-600" },
   ]
 
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0)
@@ -451,7 +452,7 @@ export default function SafeKidAIFunnel() {
     setIsTransitioning(false)
   }
 
-  // Scanning animation
+  // Scanning animation - Updated to 40 seconds total duration
   useEffect(() => {
     if (currentStep === "scanning") {
       setScanProgress(0)
@@ -462,9 +463,9 @@ export default function SafeKidAIFunnel() {
             setTimeout(() => handleStepTransition("chat-simulation"), 1000)
             return 100
           }
-          return prev + 2
+          return prev + 0.625 // 100 / 160 intervals = 0.625 per interval (40 seconds * 4 intervals per second)
         })
-      }, 100)
+      }, 250) // Update every 250ms for smoother animation
       return () => clearInterval(interval)
     }
   }, [currentStep])
@@ -932,10 +933,12 @@ export default function SafeKidAIFunnel() {
                     <p className="text-green-400 text-sm font-medium">{socialProofs[currentProofIndex]}</p>
                   </motion.div>
 
-                  {/* Social Networks Status */}
+                  {/* Social Networks Status - Updated to include Discord and proper sequencing */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
                     {socialNetworks.map((network, index) => {
-                      const isScanned = scanProgress > (index + 1) * 20
+                      // Each platform gets scanned at different progress thresholds
+                      const progressThreshold = (index + 1) * (100 / socialNetworks.length)
+                      const isScanned = scanProgress >= progressThreshold
                       const networkKey = network.name.toLowerCase() as keyof typeof scanResults
                       const result = scanResults[networkKey]
 
@@ -1287,7 +1290,7 @@ export default function SafeKidAIFunnel() {
                     🚨 COMPLETE ANALYSIS OF <span className="text-red-400">{childName.toUpperCase()}</span>
                   </h1>
                   <p className="text-lg md:text-xl text-[#FFCE00] font-semibold mb-4">
-                    <span className="text-red-400 font-bold">4 risk situations</span> detected that require immediate
+                    <span className="text-red-400 font-bold">5 risk situations</span> detected that require immediate
                     attention
                   </p>
                   <div className="text-center">
@@ -1297,7 +1300,7 @@ export default function SafeKidAIFunnel() {
                   </div>
                 </motion.div>
 
-                {/* Risk Summary */}
+                {/* Risk Summary - Updated to include Discord */}
                 <motion.div
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -1332,6 +1335,13 @@ export default function SafeKidAIFunnel() {
                       issue: "Suspicious conversation identified",
                       color: "border-red-600 bg-red-600/20",
                       icon: "🚨",
+                    },
+                    {
+                      platform: "Discord",
+                      risk: "HIGH",
+                      issue: "Inappropriate server access detected",
+                      color: "border-red-500 bg-red-500/10",
+                      icon: "⚠️",
                     },
                   ].map((item, index) => (
                     <motion.div
@@ -1374,10 +1384,10 @@ export default function SafeKidAIFunnel() {
                 >
                   <Button
                     onClick={() => handleStepTransition("final")}
-                    className="bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl shadow-2xl btn-enhanced w-full max-w-md mb-4"
+                    className="bg-gradient-to-r from-[#885EFF]  to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl shadow-2xl btn-enhanced w-full max-w-md mb-4"
                   >
-                    {React.createElement(ctaVariants[ctaVariant].icon, { className: "w-6 h-6 mr-2" })}
-                    {ctaVariants[ctaVariant].text}
+                    <Lock className="w-6 h-6 mr-2" />
+                    {ctaVariants[ctaVariant].text} - $27
                   </Button>
                   <p className="text-gray-400 text-sm">🔒 Secure payment • ⚡ Instant access • ✅ 30-day guarantee</p>
                 </motion.div>
@@ -1411,7 +1421,7 @@ export default function SafeKidAIFunnel() {
 
             <div className="relative z-10 min-h-screen flex flex-col">
               {/* Main container */}
-              <div className="flex-1 container mx-auto px-4 py-6 md:py-12 max-w-4xl">
+              <div className="flex-1 container mx-auto px-4 py-6 md:py-12 max-w-6xl">
                 {/* Urgency Timer */}
                 <motion.div
                   initial={{ scale: 0 }}
@@ -1437,119 +1447,207 @@ export default function SafeKidAIFunnel() {
                   className="text-center mb-8"
                 >
                   <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                    🔓 UNLOCK COMPLETE REPORT
+                    🚨 COMPLETE ANALYSIS OF <span className="text-red-400">{childName.toUpperCase()}</span>
                   </h1>
                   <p className="text-lg md:text-xl text-[#FFCE00] font-semibold mb-4">
-                    Get immediate access to the detailed analysis + 30 days of continuous monitoring
+                    <span className="text-red-400 font-bold">5 risk situations</span> detected that require immediate
+                    attention
                   </p>
                 </motion.div>
 
-                {/* Testimonials */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
-                >
-                  {realTestimonials.map((testimonial, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ x: index === 0 ? -50 : 50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.6 + index * 0.2 }}
-                      className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6"
-                    >
-                      <div className="flex items-center gap-3 mb-4">
-                        <img
-                          src={testimonial.avatar || "/placeholder.svg"}
-                          alt={testimonial.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                          loading="lazy"
-                        />
-                        <div>
-                          <h4 className="text-white font-semibold">{testimonial.name}</h4>
-                          <p className="text-[#1FE3C2] text-sm">{testimonial.child}</p>
-                        </div>
-                        {testimonial.verified && <CheckCircle className="w-5 h-5 text-[#1FE3C2] ml-auto" />}
-                      </div>
-                      <p className="text-gray-300 text-sm italic">"{testimonial.text}"</p>
-                      <div className="flex items-center gap-1 mt-3">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                        ))}
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-
-                {/* Social Comments */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="space-y-4 mb-8"
-                >
-                  {socialComments.map((comment, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ x: -50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 1 + index * 0.2 }}
-                      className="bg-gray-800/50 border border-gray-700 rounded-xl p-4"
-                    >
-                      <div className="flex items-start gap-3">
-                        <img
-                          src={comment.avatar || "/placeholder.svg"}
-                          alt={comment.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                          loading="lazy"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-white font-semibold text-sm">{comment.name}</h4>
-                            <span className="text-gray-400 text-xs">{comment.time}</span>
-                          </div>
-                          <p className="text-gray-300 text-sm">{comment.comment}</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-
-                {/* Protected Families Counter */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1.2 }}
-                  className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-8 text-center"
-                >
-                  <p className="text-green-400 font-semibold">
-                    🛡️ <span className="text-2xl font-bold">{protectedFamilies.toLocaleString()}</span> families already
-                    protected
-                  </p>
-                </motion.div>
-
-                {/* CTA Button */}
-                <motion.div
-                  initial={{ y: 30, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1.4 }}
-                  className="text-center"
-                >
-                  <Button
-                    onClick={handleCheckoutRedirect}
-                    className="bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl shadow-2xl btn-enhanced w-full max-w-md mb-4"
+                {/* Two-column layout for desktop, single column for mobile */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column - Risk Analysis */}
+                  <motion.div
+                    initial={{ x: -50, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="space-y-6"
                   >
-                    <Lock className="w-6 h-6 mr-2" />
-                    UNLOCK COMPLETE REPORT - $27
-                  </Button>
-                  <p className="text-gray-400 text-sm mb-4">
-                    🔒 Secure payment • ⚡ Instant access • ✅ 30-day guarantee
-                  </p>
-                  <p className="text-[#1FE3C2] text-sm font-semibold">
-                    ✅ One-time payment • No subscriptions • No hidden fees
-                  </p>
-                </motion.div>
+                    {/* Risk Summary */}
+                    <div className="space-y-4">
+                      {[
+                        {
+                          platform: "Instagram",
+                          risk: "HIGH",
+                          issue: "Grooming attempt detected",
+                          details: "Suspicious user trying to gain trust",
+                          color: "border-red-500 bg-red-500/10",
+                          icon: "❌",
+                        },
+                        {
+                          platform: "Snapchat",
+                          risk: "CRITICAL",
+                          issue: "Interaction with unknown profile",
+                          details: "Private messages from unverified account",
+                          color: "border-red-600 bg-red-600/20",
+                          icon: "🚨",
+                        },
+                        {
+                          platform: "TikTok",
+                          risk: "HIGH",
+                          issue: "Inappropriate content viewed",
+                          details: "Adult content accessed multiple times",
+                          color: "border-red-500 bg-red-500/10",
+                          icon: "⚠️",
+                        },
+                        {
+                          platform: "WhatsApp",
+                          risk: "CRITICAL",
+                          issue: "Suspicious conversation identified",
+                          details: "Unknown contact requesting personal info",
+                          color: "border-red-600 bg-red-600/20",
+                          icon: "🚨",
+                        },
+                        {
+                          platform: "Discord",
+                          risk: "HIGH",
+                          issue: "Inappropriate server access detected",
+                          details: "Joined adult-oriented Discord servers",
+                          color: "border-red-500 bg-red-500/10",
+                          icon: "⚠️",
+                        },
+                      ].map((item, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ y: 30, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.6 + index * 0.1 }}
+                          className={`p-4 rounded-xl border-2 ${item.color}`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-bold text-white">{item.platform}</h3>
+                            <span className="text-2xl">{item.icon}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                              {item.risk} RISK
+                            </span>
+                          </div>
+                          <p className="text-gray-300 text-sm mb-1">{item.issue}</p>
+                          <p className="text-gray-400 text-xs">{item.details}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Local Statistic */}
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 1.1 }}
+                      className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-center"
+                    >
+                      <p className="text-yellow-400 font-semibold">{getLocalStatistic()}</p>
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Right Column - Social Proof & CTA */}
+                  <motion.div
+                    initial={{ x: 50, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="space-y-6"
+                  >
+                    {/* Real Testimonials */}
+                    <div className="space-y-4">
+                      {realTestimonials.map((testimonial, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ y: 30, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.8 + index * 0.2 }}
+                          className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4"
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={testimonial.avatar || "/placeholder.svg"}
+                              alt={testimonial.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                              loading="lazy"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold text-white">{testimonial.name}</h4>
+                                {testimonial.verified && <CheckCircle className="w-4 h-4 text-[#1FE3C2]" />}
+                              </div>
+                              <p className="text-gray-300 text-sm mb-2">"{testimonial.text}"</p>
+                              <p className="text-gray-400 text-xs">{testimonial.child}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Social Comments */}
+                    <div className="space-y-3">
+                      {socialComments.map((comment, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ y: 30, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 1.2 + index * 0.1 }}
+                          className="bg-gray-800/50 border border-gray-700 rounded-lg p-3"
+                        >
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={comment.avatar || "/placeholder.svg"}
+                              alt={comment.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                              loading="lazy"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-white text-sm">{comment.name}</span>
+                                <span className="text-gray-400 text-xs">{comment.time}</span>
+                              </div>
+                              <p className="text-gray-300 text-sm">{comment.comment}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Protected Families Counter */}
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 1.4 }}
+                      className="bg-[#1FE3C2]/10 border border-[#1FE3C2]/30 rounded-xl p-4 text-center"
+                    >
+                      <div className="text-3xl font-bold text-[#1FE3C2] mb-2">{protectedFamilies.toLocaleString()}</div>
+                      <p className="text-white text-sm">Families already protected by SafeKid AI</p>
+                    </motion.div>
+
+                    {/* Final CTA */}
+                    <motion.div
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 1.6 }}
+                      className="text-center"
+                    >
+                      <Button
+                        onClick={handleCheckoutRedirect}
+                        className="bg-gradient-to-r from-[#885EFF] to-[#1FE3C2] hover:from-[#7B52FF] hover:to-[#1BD4B8] text-white font-bold py-4 px-8 text-lg rounded-xl shadow-2xl btn-enhanced w-full mb-4"
+                      >
+                        <Lock className="w-6 h-6 mr-2" />
+                        {ctaVariants[ctaVariant].text} - $27
+                      </Button>
+                      <p className="text-gray-400 text-sm mb-4">
+                        🔒 Secure payment • ⚡ Instant access • ✅ 30-day guarantee
+                      </p>
+                      <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Lock className="w-4 h-4" />
+                          <span>SSL Encryption</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Shield className="w-4 h-4" />
+                          <span>COPPA Protected</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                </div>
               </div>
             </div>
           </motion.div>
