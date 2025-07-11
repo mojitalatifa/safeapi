@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You For Your Purchase!</title>
+    <style>
+        /* --- General Settings --- */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1a2035; /* Main dark blue background */
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            padding: 40px;
+            background-color: #2a314b; /* Slightly lighter blue box */
+            border-radius: 16px;
+        }
+        
+        /* --- Confirmation Icon --- */
+        .confirmation-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #2de2c0; /* Accent teal/green color */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 30px auto;
+        }
+
+        .confirmation-icon svg {
+            width: 48px;
+            height: 48px;
+            fill: #ffffff;
+        }
+
+        /* --- Text Content Styling --- */
+        .content h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .content p {
+            font-size: 18px;
+            color: #d0d2d6; /* Light gray text for readability */
+            line-height: 1.6;
+        }
+
+        .content .main-message {
+            margin-bottom: 25px;
+        }
+        
+        /* --- Separator --- */
+        .separator {
+            height: 1px;
+            width: 80%;
+            background-color: #4a516a;
+            margin: 30px auto;
+        }
+
+        /* --- Email Notice --- */
+        .email-notice p {
+            font-size: 15px;
+            color: #a9b0c2; /* Dimmer text for the notice */
+        }
+        
+        .email-notice strong {
+            color: #d0d2d6;
+        }
+
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        
+        <div class="confirmation-icon">
+            <!-- SVG for a checkmark -->
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        </div>
+
+        <div class="content">
+            <h1>Thank You For Your Purchase!</h1>
+            <p class="main-message">Your order has been successfully confirmed.</p>
+            <p>Your access details are on their way to your registered email address right now.</p>
+        </div>
+        
+        <div class="separator"></div>
+
+        <div class="email-notice">
+             <p><strong>Important:</strong> Please allow 5-10 minutes for the email to arrive. If you don't see it in your inbox, be sure to check your <strong>spam or junk folder</strong>.</p>
+        </div>
+
+    </main>
+
+</body>
+</html>
